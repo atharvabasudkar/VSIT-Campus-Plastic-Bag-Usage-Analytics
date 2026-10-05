@@ -9,12 +9,14 @@ const db = require('../database/database');
 const { generateRecords, exportCsv } = require('../dataset/generate_dataset');
 const { verifyToken, requireAdmin } = require('../middleware/authMiddleware');
 
-const upload = multer({ dest: path.join(__dirname, '..', 'uploads') });
+const isVercelEnv = process.env.VERCEL || process.env.NOW_BUILDER;
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Ensure uploads folder exists
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+const uploadsDir = isVercelEnv ? '/tmp' : path.join(__dirname, '..', 'uploads');
+if (!isVercelEnv && !fs.existsSync(uploadsDir)) {
+  try {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  } catch (e) {}
 }
 
 // GET /api/export/csv - Download dataset CSV
