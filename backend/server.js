@@ -39,6 +39,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+const fs = require('fs');
+
+// Serve static frontend build if present (e.g. for Render web service)
+const frontendDist = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err.stack);
